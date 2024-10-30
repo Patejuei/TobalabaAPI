@@ -24,6 +24,7 @@ class Inventario(Base):
     estado: Mapped[str] = mapped_column()
     bodega: Mapped["Bodega"] = relationship(back_populates="inventario")
     movimientos: Mapped[List["Movimientos"]] = relationship(back_populates="inventario")
+    carro: Mapped["MaterialMayor"] = relationship(back_populates="inventario")
     # multiseries: Mapped[List["Multiseries"]] = relationship(back_populates="inventario")
 
 
@@ -45,6 +46,24 @@ class Movimientos(Base):
     inventario: Mapped["Inventario"] = relationship(back_populates="movimientos")
     detalle: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column()
+
+
+class MaterialMayor(Base):
+    __tablename__ = "Material_Mayor"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    inventario_id: Mapped[int] = mapped_column(ForeignKey("inventario.id"))
+    inventario: Mapped["Inventario"] = relationship(back_populates="carro")
+    ubicacion: Mapped[str] = mapped_column()
+
+
+class Asignados(Base):
+    __tablename__ = "asignados"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    inventario_id: Mapped[int] = mapped_column(ForeignKey("inventario.id"))
+    inventario: Mapped["Inventario"] = relationship(back_populates="asignados")
+    bombero_asignado: Mapped[str] = mapped_column()
 
 
 # class Multiseries(Base):

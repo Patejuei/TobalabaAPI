@@ -1,5 +1,11 @@
 from fastapi import APIRouter
-from models.Inventario import Inventario, Bodega as BodegaModel, Movimientos
+from models.Inventario import (
+    Inventario,
+    Bodega as BodegaModel,
+    Movimientos,
+    MaterialMayor,
+    Asignados,
+)
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from config.database import engine
@@ -27,6 +33,7 @@ class Item(BaseModel):
     en_carro: bool
     estado: str
     bodega: Bodega | None
+    carro: str | None
 
 
 @items.get("/items")
@@ -76,3 +83,30 @@ async def create_item(item: Item) -> Item:
         session.add(bodega) if item.almacenado else None
         session.commit()
         return item
+
+
+@items.get("/items/{item_id}")
+async def get_item(item_id: int) -> Inventario:
+    response = []
+    with Session(engine) as session:
+        stmt = select(Inventario).where(Inventario.id == item_id)
+        item = session.scalars(stmt).first()
+        response.append(item)
+        if item.almacenado:
+            stmt = select(Bodega).where(Bodega.inventario_id == item_id)
+            bodega = session.scalars(stmt).first()
+            response.append(bodega)
+        elif item.en_carro:
+            stmt = select(MaterialMayor).where(MaterialMayor.inventario_id == item_id)
+            carro = session.scalars(stmt).first()
+            response.append(carro)
+        elif item.asignado:
+            stmt = select(Asignados).where(Asignados.inventario_id == item_id)
+            asignado = session.scalars(stmt).first()
+            response.append(asignado)
+
+        stmt = select(Movimientos).where(Movimientos.inventario_id == item_id)
+        movimientos = session.scalars(stmt).all()
+        response.append(movimientos)
+
+        return response
