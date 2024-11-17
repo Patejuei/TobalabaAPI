@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from models.Inventario import (
+from models.Tables import (
     Inventario,
     Bodega as BodegaModel,
     Movimientos,
@@ -44,7 +44,7 @@ async def get_items():
         return inventario
 
 
-@items.post("/items")
+@items.post("/items", response_model=Item)
 async def create_item(item: Item) -> Item:
     """
     Agrega un nuevo item al inventario.
@@ -61,7 +61,7 @@ async def create_item(item: Item) -> Item:
         modelo=item.modelo,
         serie=item.serie,
         cantidad=item.cantidad,
-        asignado=item.asignado,
+        es_asignado=item.asignado,
         multi_serial=item.multi_serial,
         almacenado=item.almacenado,
         en_carro=item.en_carro,
@@ -85,7 +85,7 @@ async def create_item(item: Item) -> Item:
         return item
 
 
-@items.get("/items/{item_id}")
+@items.get("/items/{item_id}", response_model=None)
 async def get_item(item_id: int) -> Inventario:
     response = []
     with Session(engine) as session:
@@ -93,7 +93,7 @@ async def get_item(item_id: int) -> Inventario:
         item = session.scalars(stmt).first()
         response.append(item)
         if item.almacenado:
-            stmt = select(Bodega).where(Bodega.inventario_id == item_id)
+            stmt = select(BodegaModel).where(BodegaModel.inventario_id == item_id)
             bodega = session.scalars(stmt).first()
             response.append(bodega)
         elif item.en_carro:
