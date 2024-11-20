@@ -61,7 +61,9 @@ async def get_saldo():
 @cash.get("/cuotas/{personal_id}")
 async def get_cuotas(personal_id: int):
     with Session(engine) as session:
-        stmt = select(Cuotas).where(Cuotas.personal_id == personal_id)
+        stmt = (
+            select(Cuotas).join(Cuotas.ingreso).where(Cuotas.personal_id == personal_id)
+        )
         cuotas = session.scalars(stmt).all()
         return cuotas
 
