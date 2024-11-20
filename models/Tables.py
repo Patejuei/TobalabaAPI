@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 from config.database import Base, engine
 
@@ -190,6 +190,7 @@ class Egresos(Base):
     concepto: Mapped[str] = mapped_column()
     valor: Mapped[float] = mapped_column()
     tipo: Mapped[str] = mapped_column()
+    saldo: Mapped["Saldo"] = relationship(back_populates="egreso")
     created_at: Mapped[datetime] = mapped_column()
     updated_at: Mapped[datetime] = mapped_column()
 
@@ -200,6 +201,13 @@ class Saldo(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     fecha: Mapped[datetime] = mapped_column()
     valor: Mapped[float] = mapped_column()
+    es_ingerso: Mapped[bool] = mapped_column()
+    ingreso_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("Tesoreria_Ingresos.id")
+    )
+    ingreso: Mapped[Optional["Ingresos"]] = relationship(back_populates="saldo")
+    egreso_id: Mapped[Optional[int]] = mapped_column(ForeignKey("Tesoreria_Egresos.id"))
+    egreso: Mapped[Optional["Egresos"]] = relationship(back_populates="saldo")
     created_at: Mapped[datetime] = mapped_column()
 
 
@@ -207,7 +215,6 @@ class Cuotas(Base):
     __tablename__ = "Tesoreria_Cuotas"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    fecha: Mapped[datetime] = mapped_column()
     ingreso: Mapped["Ingresos"] = relationship(back_populates="cuotas")
     ingreso_id: Mapped[int] = mapped_column(ForeignKey("Tesoreria_Ingresos.id"))
     personal: Mapped["PersonalModel"] = relationship(back_populates="cuotas")
